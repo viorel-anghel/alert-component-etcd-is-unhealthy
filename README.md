@@ -116,13 +116,17 @@ https://gist.github.com/efrecon/8ce9c75d518b6eb863f667442d7bc679 .
 
 We save that file as `run.tpl` and finally we run
 ```
-docker inspect etcd >docker-inspect-etcd-save.txt
-docker rm -f etcd 
-docker inspect --format "$(run.tpl)" 0ef6840e8aab >new-run
+docker inspect etcd >docker-inspect-etcd-save.txt    # save the info, just in case
+docker inspect --format "$(run.tpl)" etcd >new-run   # this creates the file new-run with the docker run command
+
+docker rm -f etcd  # remove it now, we'll start fresh
+rm -rf  /var/lib/etcd/member/
+
 # edit the file new-run and replace 
 # --initial-cluster-state=new
 # with 
 # --initial-cluster-state=existing
+
 # the simply run the resulting command:
 bash new-run
 ```
