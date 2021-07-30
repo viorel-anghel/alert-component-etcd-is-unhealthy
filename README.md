@@ -70,7 +70,7 @@ where we find this:
   the recommended approach is to fix or remove the failed or unhealthy node 
   before adding a new etcd node to the cluster."
 
-and then the page ends. Wait! Wait!! How? How we do that?? Well, back to net searches...
+and then the page ends. Wait! Wait!! How? How we do that?? Well, back to online searches...
 
 ## Etcd removing and adding nodes
 
@@ -118,7 +118,7 @@ Um, not really, not yet... Looking the container logs, we see a new error:
 2021-07-30 06:56:50.798893 E | rafthttp: request sent was ignored (cluster ID mismatch: peer
 ```
 
-So our trick with ```docker stop ; docker start``` was not enough. After some more net searching, I find out we need to start this container from zero and with some command line arguments changed! More exactly, we must change this argument:
+So our trick with ```docker stop ; docker start``` was not enough. After some more online searching, I find out we need to start this container from zero and with some command line arguments changed! More exactly, we must change this argument:
 ```
 
 from
