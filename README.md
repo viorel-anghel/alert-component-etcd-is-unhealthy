@@ -3,7 +3,7 @@
 
 
 ## TLDR
-To quickly decide if this is for you, this article deals with 3 errors/alerts related to etcd component of a Kubernetes cluster:
+To quickly decide if this is for you, this article deals with 3 errors/alerts related to the `etcd` component of a Kubernetes cluster:
 ```
 # in rancher web interface: alert component etcd is unhealthy
 
