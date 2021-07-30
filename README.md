@@ -21,8 +21,8 @@ about 'etcd is unhealthy'.
 
 ![alert component etcd is unhealthy](alert-component-etcd-is-unhealthy.png?raw=true "alert component etcd is unhealthy")
 
-Etcd is the Kubernetes database and it holds basically all the cluster information. You may backup it and restore a full cluster having only this. 
-Fortunatelly, etcd (usually) runs in a HA system with 3 nodes. But now we have one of the etcd node down, as can be confirmed with
+Etcd is the Kubernetes database and it holds basically all the cluster information. You can backup and restore a full cluster having only etcd data. 
+Fortunatelly, etcd (usually) runs in a HA system with 3 nodes. But now we have one of the etcd nodes down, as can be confirmed with
 
 ```
 $ kubectl get componentstatus
@@ -36,7 +36,7 @@ etcd-0               Healthy     {"health":"true"}
 ```
 
 ## Docker logs error
-This is a cluster installed directly from the Rancher interface, and ssh-ing into that VM we can see etcd is run inside a docker container:
+This is a cluster installed directly from the Rancher interface, and by ssh-ing into that VM we can see etcd is running inside a docker container:
 
 ```
 $ docker ps | grep etcd
@@ -59,9 +59,8 @@ created by go.etcd.io/bbolt.(*DB).freepages
 
 The container gets in the same state when trying to restart it (or `docker container stop ...; docker container start ...`).
 
-Some searches on the net, the general oppinion was the etcd database is corrupted, 
-probably by an unclean restart/shutdown and  the etcd node must be recreated starting 
-it empty and it wil sync the database from the other nodes.
+Some online searches later, the general opinion was the etcd database is corrupt, 
+probably by an unclean restart/shutdown and the etcd node must be recreated. It will start empty and will sync the database from the other nodes.
 
 Yeey, that's seems simple and it is also confirmed by the official Rancher documentation at 
 https://rancher.com/docs/rancher/v2.5/en/troubleshooting/kubernetes-components/etcd/#replacing-unhealthy-etcd-nodes
@@ -128,13 +127,13 @@ to
 "--initial-cluster-state=existing"
 ```
 
-which kinda make sense and seems logical.
+which kinda makes sense and seems logical.
 
 We don't have the full `docker run` command used to start this container, but we can use `docker inspect` to find out all the details:
 
 ![docker inspect etcd](docker-inspect.png?raw=true "docker inspect etcd")
 
-So, how can we create a `docker run` command from this? Either with hard work... or by net searching and finding this solution:
+So, how can we create a `docker run` command from this? Either with hard work... or by online searching and finding this solution:
 https://gist.github.com/efrecon/8ce9c75d518b6eb863f667442d7bc679 .
 
 We save that file as `run.tpl` and finally we run
