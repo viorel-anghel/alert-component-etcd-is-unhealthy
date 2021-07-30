@@ -140,7 +140,14 @@ We save that file as `run.tpl` and finally we run
 ```
 docker inspect etcd >docker-inspect-etcd-save.txt    # save the info, just in case
 docker inspect --format "$(<run.tpl)" etcd >new-run   # this creates the file new-run with the docker run command
+```
 
+The resulted file will look something like:
+
+![docker run etcd](docker-run.png?raw=true "docker run etcd")
+
+Now we just need to create the new container:
+```
 docker rm -f etcd  # remove it now, we'll start fresh
 rm -rf  /var/lib/etcd/member/
 
