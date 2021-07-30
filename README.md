@@ -1,0 +1,130 @@
+
+# Troubleshooting Alert: Component etcd is unhealthy in Kubernetes / Rancher 2.x
+
+We use Rancher 2.x to manage some of our Kubernetes clusters and this has a nice web interface. One day we've got this alert / error
+about 'etcd is unhealthy'.
+
+Of course this has to be addressed. Etcd is the Kubernetes database and it holds basically all the information about a Kubernetes cluster. 
+You may backup and restore a full cluster having only this. Fortunatelly, it (usually) runs in a HA system with 3 nodes. But now we have one of the etcd node down, as can be confirmed with
+
+```
+$ kubectl get componentstatus
+Warning: v1 ComponentStatus is deprecated in v1.19+
+NAME                 STATUS      MESSAGE                                                                                             ERROR
+etcd-1               Unhealthy   Get "https://192.168.60.48:2379/health": dial tcp 192.168.60.48:2379: connect: connection refused   
+scheduler            Healthy     ok                                                                                                  
+controller-manager   Healthy     ok                                                                                                  
+etcd-2               Healthy     {"health":"true"}                                                                                   
+etcd-0               Healthy     {"health":"true"}                
+```
+
+This is a cluster installed directly from Rancher interface, which means we don't really have many details. But ssh-ing into that VM we can see etcd is run inside a docker container:
+
+```
+$ docker ps | grep etcd
+5fb87452ddff   rancher/coreos-etcd:v3.4.13-rancher1   "/usr/local/bin/etcd…"   6 months ago   Restarting (2) 21 seconds ago             etcd
+```
+
+So, the container is not running ("Restarting"...). Looking in logs:
+
+```
+$ docker logs etcd
+[...] 
+panic: freepages: failed to get all reachable pages (page 6987: multiple references)
+
+goroutine 126 [running]:
+go.etcd.io/bbolt.(*DB).freepages.func2(0xc0001c64e0)
+	/home/ANT.AMAZON.COM/leegyuho/go/pkg/mod/go.etcd.io/bbolt@v1.3.3/db.go:1003 +0xe5
+created by go.etcd.io/bbolt.(*DB).freepages
+	/home/ANT.AMAZON.COM/leegyuho/go/pkg/mod/go.etcd.io/bbolt@v1.3.3/db.go:1001 +0x1b5
+```
+
+The container gets in the same state when trying to restart it (or doccker container stop ...; docker container start ...).
+
+Some searches on the net, the general oppinion was that the etcd database was corrupted, 
+probably by an unclean restart/shutdown and  the etcd node musr be recreated starting 
+it empty and it wil sync the database from the other nodes.
+
+Yeey, that's seems simple and it is also confirmed by the official Rancher documentation at 
+https://rancher.com/docs/rancher/v2.5/en/troubleshooting/kubernetes-components/etcd/#replacing-unhealthy-etcd-nodes
+where we find this:
+"When a node in your etcd cluster becomes unhealthy, the recommended approach is to fix or remove the failed or unhealthy node before adding a new etcd node to the cluster."
+and the the page ends.
+
+Wait! Wait!! How? How we do that?? Well, now, back to net searches...
+
+In the same Rancher documentation, at least, we find we can use etcdctl comamnds like this, on a working etcd node:
+```
+$ docker exec etcd etcdctl member list
+docker exec etcd etcdctl member list
+b5f3d11f27cbc784, started, etcd-k1c1, https://192.168.60.47:2380, https://192.168.60.47:2379, false
+d8c8687da4a99f58, started, etcd-k1c2, https://192.168.60.48:2380, https://192.168.60.48:2379, false
+dd6d795b336a5dc7, started, etcd-k1c3, https://192.168.60.49:2380, https://192.168.60.49:2379, false
+```
+
+Ok, that will be helpfull later.
+
+We read more docs about etcd to find out how to remove and re-add a node. I have not been able to find info for our particular case
+but I think the process should be like this:
+- etcdctl member remove ...
+- docker container stop ... # the unhealthy etcd node
+- remove the data directory so the container will start with empty database
+- etcdctl member add ... # we need to check parameters
+- docker container start ... # the unhealthy etcd node
+
+After some experiments and filling the dots, as an example, our commands are:
+```
+1$ docker exec etcd etcdctl member list # on a working etcd node
+1$ docker exec etcd etcdctl member remove c6d99083f92f060c
+
+2$ docker container stop etcd  # on the unlealthy etcd node
+2$ rm -rf  /var/lib/etcd/member/ # this is the host directory mounted in the etcd container
+
+1$ docker exec etcd etcdctl member add etcd-vm5 --peer-urls=https://64.225.105.45:2380 
+# exactly as it was before when we saw it as etcdctl member list
+
+2$ docker container start etcd 
+```
+
+Success! Drinks! Um, not really, not yet...
+
+Looking the container logs, we see a new error:
+```
+2021-07-30 06:56:50.766417 E | rafthttp: request cluster ID mismatch (got 1df875ec16cdadc0 want 2aafb0f5f954d734)
+2021-07-30 06:56:50.795741 E | rafthttp: request cluster ID mismatch (got 1df875ec16cdadc0 want 2aafb0f5f954d734)
+2021-07-30 06:56:50.798215 E | rafthttp: request sent was ignored (cluster ID mismatch: peer[55981658a5324937]=1df875ec16cdadc0, local=2aafb0f5f954d734)
+2021-07-30 06:56:50.798893 E | rafthttp: request sent was ignored (cluster ID mismatch: peer
+```
+
+So our trick with ```docker stop ; docker start``` was not enough. After some more net searching, I find out we need to start this container from zero and with some command line arguments changed! More exactly, we must change this argument:
+```
+from
+"--initial-cluster-state=new"
+to
+"--initial-cluster-state=existing"
+```
+
+We don't have the full `docker run` command used to start this container, we we can use `docker inspect` to find out all the details:
+
+So, how can we create a `docker run` command from this? Either with hard work... or by net searching and finding this solution:
+https://gist.github.com/efrecon/8ce9c75d518b6eb863f667442d7bc679 .
+
+We save that file as `run.tpl` and finally we run
+```
+docker inspect etcd >docker-inspect-etcd-save.txt
+docker inspect --format "$(run.tpl)" 0ef6840e8aab >new-run
+# edit the file new-run and replace 
+# --initial-cluster-state=new
+# with 
+# --initial-cluster-state=existing
+# the simplu run the resulting command:
+bash new-run
+```
+
+Yes, all good! You can of course check the etcd state using various commands already discussed here.
+
+As a final note for my fellow devops/sysadmins, please note I did the experiments with etcd member removing / adding on a test cluster, not directly on the one with problems which is production.
+
+
+
+
