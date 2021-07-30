@@ -109,7 +109,6 @@ which kinda make sense and seems logical.
 
 We don't have the full `docker run` command used to start this container, but we can use `docker inspect` to find out all the details:
 
-docker-inspect.png
 ![docker inspect etcd](docker-inspect.png?raw=true "docker inspect etcd")
 
 So, how can we create a `docker run` command from this? Either with hard work... or by net searching and finding this solution:
@@ -124,7 +123,7 @@ docker inspect --format "$(run.tpl)" 0ef6840e8aab >new-run
 # --initial-cluster-state=new
 # with 
 # --initial-cluster-state=existing
-# the simplu run the resulting command:
+# the simply run the resulting command:
 bash new-run
 ```
 
