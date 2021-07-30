@@ -1,6 +1,21 @@
 
 # Troubleshooting Alert: Component etcd is unhealthy in Kubernetes / Rancher 2.x
 
+
+## TLDR
+To quickly decide if this is for you, this article deals with 3 errors/alerts related to etcd component of a Kubernetes cluster:
+```
+# in rancher web interface: alert component etcd is unhealthy
+
+# docker logs etcd
+panic: freepages: failed to get all reachable pages (page 6987: multiple references)
+
+# docker logs etcd
+rafthttp: request cluster ID mismatch ...
+rafthttp: request sent was ignored (cluster ID mismatch: ...
+```
+
+## Rancher etcd alert
 We use Rancher 2.x to manage some of our Kubernetes clusters and this has a nice web interface. One day we've got this alert / error
 about 'etcd is unhealthy'.
 
@@ -20,6 +35,7 @@ etcd-2               Healthy     {"health":"true"}
 etcd-0               Healthy     {"health":"true"}                
 ```
 
+## Docker logs error
 This is a cluster installed directly from the Rancher interface, and ssh-ing into that VM we can see etcd is run inside a docker container:
 
 ```
@@ -57,6 +73,8 @@ where we find this:
 
 and then the page ends. Wait! Wait!! How? How we do that?? Well, back to net searches...
 
+## Etcd removing and adding nodes
+
 In the same Rancher documentation, at least, we find we can use etcdctl commands like this, on a working etcd node:
 ```
 $ docker exec etcd etcdctl member list
@@ -89,7 +107,11 @@ After some experiments and filling in the dots, as an example, our commands were
 2$ docker container start etcd 
 ```
 
-Success! Drinks! Um, not really, not yet... Looking the container logs, we see a new error:
+Success! Drinks! 
+
+## Docker run from inspect
+
+Um, not really, not yet... Looking the container logs, we see a new error:
 ```
 2021-07-30 06:56:50.766417 E | rafthttp: request cluster ID mismatch (got 1df875ec16cdadc0 want 2aafb0f5f954d734)
 2021-07-30 06:56:50.795741 E | rafthttp: request cluster ID mismatch (got 1df875ec16cdadc0 want 2aafb0f5f954d734)
@@ -99,6 +121,7 @@ Success! Drinks! Um, not really, not yet... Looking the container logs, we see a
 
 So our trick with ```docker stop ; docker start``` was not enough. After some more net searching, I find out we need to start this container from zero and with some command line arguments changed! More exactly, we must change this argument:
 ```
+
 from
 "--initial-cluster-state=new"
 to
