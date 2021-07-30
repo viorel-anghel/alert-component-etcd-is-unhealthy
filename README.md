@@ -55,7 +55,7 @@ where we find this:
   the recommended approach is to fix or remove the failed or unhealthy node 
   before adding a new etcd node to the cluster."
 
-and the the page ends. Wait! Wait!! How? How we do that?? Well, now, back to net searches...
+and then the page ends. Wait! Wait!! How? How we do that?? Well, back to net searches...
 
 In the same Rancher documentation, at least, we find we can use etcdctl commands like this, on a working etcd node:
 ```
@@ -105,7 +105,12 @@ to
 "--initial-cluster-state=existing"
 ```
 
-We don't have the full `docker run` command used to start this container, we we can use `docker inspect` to find out all the details:
+which kinda make sense and seems logical.
+
+We don't have the full `docker run` command used to start this container, but we can use `docker inspect` to find out all the details:
+
+docker-inspect.png
+![docker inspect etcd](docker-inspect.png?raw=true "docker inspect etcd")
 
 So, how can we create a `docker run` command from this? Either with hard work... or by net searching and finding this solution:
 https://gist.github.com/efrecon/8ce9c75d518b6eb863f667442d7bc679 .
@@ -113,6 +118,7 @@ https://gist.github.com/efrecon/8ce9c75d518b6eb863f667442d7bc679 .
 We save that file as `run.tpl` and finally we run
 ```
 docker inspect etcd >docker-inspect-etcd-save.txt
+docker rm -f etcd 
 docker inspect --format "$(run.tpl)" 0ef6840e8aab >new-run
 # edit the file new-run and replace 
 # --initial-cluster-state=new
