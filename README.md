@@ -4,8 +4,10 @@
 We use Rancher 2.x to manage some of our Kubernetes clusters and this has a nice web interface. One day we've got this alert / error
 about 'etcd is unhealthy'.
 
-Of course this has to be addressed. Etcd is the Kubernetes database and it holds basically all the information about a Kubernetes cluster. 
-You may backup and restore a full cluster having only this. Fortunatelly, it (usually) runs in a HA system with 3 nodes. But now we have one of the etcd node down, as can be confirmed with
+![alert component etcd is unhealthy](alert-component-etcd-is-unhealthy.png?raw=true "alert component etcd is unhealthy")
+
+Etcd is the Kubernetes database and it holds basically all the information about a Kubernetes cluster. 
+You may backup and restore a full cluster having only this. Fortunatelly, etcd (usually) runs in a HA system with 3 nodes. But now we have one of the etcd node down, as can be confirmed with
 
 ```
 $ kubectl get componentstatus
