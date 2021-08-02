@@ -96,7 +96,7 @@ After some experiments and filling in the dots, as an example, our commands were
 1$ docker exec etcd etcdctl member list # on a working etcd node
 1$ docker exec etcd etcdctl member remove c6d99083f92f060c
 
-2$ docker container stop etcd  # on the unlealthy etcd node
+2$ docker container stop etcd  # on the unhealthy etcd node
 2$ rm -rf  /var/lib/etcd/member/ # this is the host directory mounted in the etcd container
 
 1$ docker exec etcd etcdctl member add etcd-vm5 --peer-urls=https://64.225.105.45:2380 
