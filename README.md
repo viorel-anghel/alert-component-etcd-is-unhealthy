@@ -72,7 +72,7 @@ where we find this:
 
 and then the page ends. Wait! Wait!! How? How we do that?? Well, back to online searches...
 
-## Etcd removing and adding nodes
+## Etcd - removing and adding nodes
 
 In the same Rancher documentation, at least, we find we can use etcdctl commands like this, on a working etcd node:
 ```
@@ -108,7 +108,7 @@ After some experiments and filling in the dots, as an example, our commands were
 
 Success! Drinks! 
 
-## Docker run from inspect
+## From docker inspect to docker run
 
 Um, not really, not yet... Looking the container logs, we see a new error:
 ```
@@ -139,7 +139,7 @@ https://gist.github.com/efrecon/8ce9c75d518b6eb863f667442d7bc679 .
 We save that file as `run.tpl` and finally we run
 ```
 docker inspect etcd >docker-inspect-etcd-save.txt    # save the info, just in case
-docker inspect --format "$(<run.tpl)" etcd >new-run   # this creates the file new-run with the docker run command
+docker inspect --format "$(<run.tpl)" etcd >docker-run-etcd   # create the file with the docker run command
 ```
 
 The resulted file will look something like:
@@ -157,13 +157,14 @@ rm -rf  /var/lib/etcd/member/
 # --initial-cluster-state=existing
 
 # the simply run the resulting command:
-bash new-run
+bash docker-run-etcd
 ```
 
-Yes, all good! You can of course check the etcd state using various commands already discussed here. Lessons learned? I have to study the etcd official 
-documentation at https://etcd.io/docs/v3.5/op-guide/ .
+Checking the etcd status with `docker logs etcd`, `etcdctl member list`, `kubectl get componentstatus`: yes, all good! 
 
-As a final note for my fellow devops/sysadmins, please note I've done the experiments with etcd member removing / adding on a test cluster, not directly on the one with problems which is production.
+Lessons learned? I have to study the etcd official documentation at https://etcd.io/docs/v3.5/op-guide/ .
+
+As a final advice for my fellow devops/sysadmins, please note I've done the experiments with etcd member removing / adding on a test cluster, not directly on the one with problems which is production.
 
 
 
