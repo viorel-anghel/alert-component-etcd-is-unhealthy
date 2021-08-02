@@ -136,7 +136,7 @@ So, how can we create a `docker run` command from this? Either with hard work...
 https://gist.github.com/efrecon/8ce9c75d518b6eb863f667442d7bc679 . The file `run.tpl` is now also saved here: 
 https://github.com/viorel-anghel/alert-component-etcd-is-unhealthy .
 
-We save that file as `run.tpl` and finally we run
+We save that file as `run.tpl` on the unhealthy node and finally we run
 ```
 docker inspect etcd >docker-inspect-etcd-save.txt    # save the info, just in case
 docker inspect --format "$(<run.tpl)" etcd >docker-run-etcd   # create the file with the docker run command
