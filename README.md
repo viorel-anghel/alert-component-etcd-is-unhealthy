@@ -77,7 +77,6 @@ and then the page ends. Wait! Wait!! How? How we do that?? Well, back to online 
 In the same Rancher documentation, at least, we find we can use etcdctl commands like this, on a working etcd node:
 ```
 $ docker exec etcd etcdctl member list
-docker exec etcd etcdctl member list
 b5f3d11f27cbc784, started, etcd-k1c1, https://192.168.60.47:2380, https://192.168.60.47:2379, false
 d8c8687da4a99f58, started, etcd-k1c2, https://192.168.60.48:2380, https://192.168.60.48:2379, false
 dd6d795b336a5dc7, started, etcd-k1c3, https://192.168.60.49:2380, https://192.168.60.49:2379, false
