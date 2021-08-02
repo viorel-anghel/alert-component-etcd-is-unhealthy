@@ -151,7 +151,7 @@ Now we just need to create the new container:
 docker rm -f etcd  # remove it now, we'll start fresh
 rm -rf  /var/lib/etcd/member/
 
-# edit the file new-run and replace 
+# edit the file docker-run-etcd and replace 
 # --initial-cluster-state=new
 # with 
 # --initial-cluster-state=existing
