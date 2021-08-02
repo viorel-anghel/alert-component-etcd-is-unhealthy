@@ -134,7 +134,8 @@ We don't have the full `docker run` command used to start this container, but we
 ![docker inspect etcd](docker-inspect.png?raw=true "docker inspect etcd")
 
 So, how can we create a `docker run` command from this? Either with hard work... or by online searching and finding this solution:
-https://gist.github.com/efrecon/8ce9c75d518b6eb863f667442d7bc679 .
+https://gist.github.com/efrecon/8ce9c75d518b6eb863f667442d7bc679 . The file `run.tpl` is now also saved here: 
+https://github.com/viorel-anghel/alert-component-etcd-is-unhealthy .
 
 We save that file as `run.tpl` and finally we run
 ```
