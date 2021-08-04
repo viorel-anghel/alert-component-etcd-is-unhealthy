@@ -62,7 +62,7 @@ The container gets in the same state when trying to restart it (or `docker conta
 Some online searches later, the general opinion was the etcd database is corrupt, 
 probably by an unclean restart/shutdown and the etcd node must be recreated. It will start empty and will sync the database from the other nodes.
 
-Yeey, that's seems simple and it is also confirmed by the official Rancher documentation at 
+Yeey, that seems simple and it is also confirmed by the official Rancher documentation at 
 https://rancher.com/docs/rancher/v2.5/en/troubleshooting/kubernetes-components/etcd/#replacing-unhealthy-etcd-nodes
 where we find this:
 
@@ -70,7 +70,7 @@ where we find this:
   the recommended approach is to fix or remove the failed or unhealthy node 
   before adding a new etcd node to the cluster."
 
-and then the page ends. Wait! Wait!! How? How we do that?? Well, back to online searches...
+and then the page ends. Wait! Wait!! How? How exactly we do that?? Well, back to online searches...
 
 ## Etcd - removing and adding nodes
 
@@ -117,7 +117,7 @@ Um, not really, not yet... Looking the container logs, we see a new error:
 2021-07-30 06:56:50.798893 E | rafthttp: request sent was ignored (cluster ID mismatch: peer
 ```
 
-So our trick with ```docker stop ; docker start``` was not enough. After some more online searching, I find out we need to start this container from zero and with some command line arguments changed! More exactly, we must change this argument:
+So our trick with ```docker stop ; docker start``` was not enough. After some more online searching, I found out we need to start this container from zero and with some command line arguments changed! More exactly, we must change this argument:
 ```
 
 from
